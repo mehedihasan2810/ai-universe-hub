@@ -1,10 +1,16 @@
 async function fetchData(isSeeMore = false) {
   const URL = `https://openapi.programming-hero.com/api/ai/tools`;
   try {
+    showLoader(true);
     const response = await fetch(URL);
     const datas = await response.json();
+    showLoader(false);
+    console.log(datas.status);
 
-    console.log(datas.data.tools);
+    if (!datas.status || !datas.data.tools.length) {
+      showErrorMessage();
+    }
+
     let finalData;
     if (isSeeMore) {
       finalData = datas.data.tools;
@@ -15,6 +21,7 @@ async function fetchData(isSeeMore = false) {
     }
     displayData(finalData);
   } catch (error) {
+    showErrorMessage();
     console.log(error);
   }
 }
@@ -61,8 +68,6 @@ function displayData(datas) {
   });
 }
 
-const btnSeeMore = document.getElementById("btn-see-more");
-
 const showMore = (function () {
   let isSeeMore = false;
   return function () {
@@ -76,6 +81,33 @@ const showMore = (function () {
   };
 })();
 
+const btnSeeMore = document.getElementById("btn-see-more");
 btnSeeMore.addEventListener("click", showMore);
+
+const spinnerContainer = document.getElementById("spinner-container");
+const spinner = document.getElementById("spinner");
+
+function showLoader(isLoading) {
+  if (isLoading) {
+    spinnerContainer.classList.remove("hidden");
+    spinner.classList.remove("animate-none");
+  } else {
+    spinnerContainer.classList.add("hidden");
+    spinner.classList.add("animate-none");
+  }
+}
+
+function showErrorMessage() {
+  btnSeeMore.classList.add("hidden");
+  const main = document.querySelector("main");
+  if (main.querySelector("#show-message")) {
+    return;
+  }
+  const h1 = document.createElement("h1");
+  h1.id = "show-message";
+  h1.className = "text-center text-red-600 text-4xl";
+  h1.innerText = "No Data Found!";
+  main.append(h1);
+}
 
 fetchData();
