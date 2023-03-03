@@ -1,16 +1,25 @@
-async function fetchData() {
+async function fetchData(isSeeMore = false) {
   const URL = `https://openapi.programming-hero.com/api/ai/tools`;
   const response = await fetch(URL);
   const datas = await response.json();
-  displayData(datas);
+  console.log(datas.data.tools);
+  let finalData;
+  if (isSeeMore) {
+    finalData = datas.data.tools;
+  } else {
+    let tools = datas.data.tools;
+    finalData = tools.length > 6 ? tools.slice(0, 6) : tools;
+    console.log(finalData);
+  }
+  displayData(finalData);
 }
 
 function displayData(datas) {
-  const aiTools = datas.data.tools;
-  console.log(aiTools[0]);
   const container = document.getElementById("container");
+  container.innerHTML = "";
+  console.log(datas[0]);
 
-  aiTools.forEach((tool) => {
+  datas.forEach((tool) => {
     const card = document.createElement("div");
     card.className = "max-w-[480px] p-6 shadow rounded-md";
     card.innerHTML = `
@@ -46,5 +55,22 @@ function displayData(datas) {
     container.append(card);
   });
 }
+
+const btnSeeMore = document.getElementById("btn-see-more");
+
+const showMore = (function () {
+  let isSeeMore = false;
+  return function () {
+    isSeeMore = !isSeeMore;
+    if (isSeeMore) {
+      btnSeeMore.innerHTML = "SEE LESS";
+    } else {
+      btnSeeMore.innerHTML = "SEE MORE";
+    }
+    fetchData(isSeeMore);
+  };
+})();
+
+btnSeeMore.addEventListener("click", showMore);
 
 fetchData();
