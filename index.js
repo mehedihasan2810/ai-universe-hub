@@ -1,4 +1,6 @@
-async function fetchData(isSeeMore = false) {
+let finalData = null;
+let isSeeMore = false;
+async function fetchData() {
   const URL = `https://openapi.programming-hero.com/api/ai/tools`;
   try {
     showLoader(true);
@@ -11,29 +13,28 @@ async function fetchData(isSeeMore = false) {
       showErrorMessage();
     }
 
-    let finalData;
-    if (isSeeMore) {
-      finalData = datas.data.tools;
-    } else {
-      let tools = datas.data.tools;
-      finalData = tools.length > 6 ? tools.slice(0, 6) : tools;
-      console.log(finalData);
-    }
-    displayData(finalData);
+    finalData = datas.data.tools.slice();
+    slicedData =
+      finalData.length > 6 ? finalData.slice(0, 6) : finalData.slice();
+    displayData(slicedData);
   } catch (error) {
     showErrorMessage();
     console.log(error);
   }
 }
 
+const container = document.getElementById("container");
 function displayData(datas) {
-  const container = document.getElementById("container");
   container.innerHTML = "";
-  console.log(datas[0]);
 
   datas.forEach((tool) => {
     const card = document.createElement("div");
     card.className = "max-w-[480px] p-6 shadow rounded-md";
+
+    const features = tool.features
+      .map((feature) => `<li class="text-slate-500">${feature}</li>`)
+      .join("");
+
     card.innerHTML = `
     <img
     class="object-cover rounded"
@@ -43,9 +44,7 @@ function displayData(datas) {
   <div class="mt-4">
     <h2 class="text-2xl font-bold text-slate-700 mb-3">Features</h2>
     <ol class="list-decimal list-inside">
-      <li class="text-slate-500">${tool.features[0]}</li>
-      <li class="text-slate-500">${tool.features[1]}</li>
-      <li class="text-slate-500">${tool.features[2]}</li>
+     ${features}
     </ol>
     <hr class="my-6" />
     <div class="flex justify-between items-center">
@@ -68,21 +67,50 @@ function displayData(datas) {
   });
 }
 
-const showMore = (function () {
-  let isSeeMore = false;
-  return function () {
-    isSeeMore = !isSeeMore;
-    if (isSeeMore) {
-      btnSeeMore.innerHTML = "SEE LESS";
-    } else {
-      btnSeeMore.innerHTML = "SEE MORE";
-    }
-    fetchData(isSeeMore);
-  };
-})();
+function showMore() {
+  isSeeMore = !isSeeMore;
+  if (isSeeMore) {
+    btnSeeMore.innerHTML = "SEE LESS";
+    displayData(finalData);
+  } else {
+    btnSeeMore.innerHTML = "SEE MORE";
+    slicedData = finalData.length > 6 ? finalData.slice(0, 6) : finalData;
+    displayData(slicedData);
+  }
+}
 
+const btnSortByDate = document.getElementById("btn-sort-by-date");
 const btnSeeMore = document.getElementById("btn-see-more");
 btnSeeMore.addEventListener("click", showMore);
+
+function showErrorMessage() {
+  btnSeeMore.classList.add("hidden");
+  const main = document.querySelector("main");
+  const h1 = main.querySelector("#show-message");
+  h1.classList.remove("hidden");
+  btnSortByDate.classList.add("hidden");
+}
+
+btnSortByDate.addEventListener("click", sortData);
+
+function sortData() {
+  const sortedData = finalData.sort((dataA, dataB) => {
+    const publishedA = new Date(dataA.published_in).getTime();
+    const publishedB = new Date(dataB.published_in).getTime();
+    if (publishedA < publishedB) return 1;
+    if (publishedA > publishedB) return -1;
+    if (publishedA === publishedB) return 0;
+  });
+
+  if (isSeeMore) {
+    btnSeeMore.innerHTML = "SEE LESS";
+    displayData(sortData);
+  } else {
+    btnSeeMore.innerHTML = "SEE MORE";
+    slicedData = sortedData.length > 6 ? sortedData.slice(0, 6) : sortedData;
+    displayData(slicedData);
+  }
+}
 
 const spinnerContainer = document.getElementById("spinner-container");
 const spinner = document.getElementById("spinner");
@@ -91,23 +119,16 @@ function showLoader(isLoading) {
   if (isLoading) {
     spinnerContainer.classList.remove("hidden");
     spinner.classList.remove("animate-none");
+    document.body.classList.add("overflow-hidden");
+    btnSeeMore.classList.add("hidden");
+    btnSortByDate.classList.add("hidden");
   } else {
     spinnerContainer.classList.add("hidden");
     spinner.classList.add("animate-none");
+    document.body.classList.remove("overflow-hidden");
+    btnSeeMore.classList.remove("hidden");
+    btnSortByDate.classList.remove("hidden");
   }
-}
-
-function showErrorMessage() {
-  btnSeeMore.classList.add("hidden");
-  const main = document.querySelector("main");
-  if (main.querySelector("#show-message")) {
-    return;
-  }
-  const h1 = document.createElement("h1");
-  h1.id = "show-message";
-  h1.className = "text-center text-red-600 text-4xl";
-  h1.innerText = "No Data Found!";
-  main.append(h1);
 }
 
 fetchData();
