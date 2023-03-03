@@ -7,7 +7,7 @@ async function fetchData() {
     const response = await fetch(URL);
     const datas = await response.json();
     showLoader(false);
-    console.log(datas.status);
+    console.log(datas.data.tools[0]);
 
     if (!datas.status || !datas.data.tools.length) {
       showErrorMessage();
@@ -21,6 +21,28 @@ async function fetchData() {
     showErrorMessage();
     console.log(error);
   }
+}
+
+const script = document.querySelector("script[src]");
+console.log(script);
+
+const modalContainer = document.getElementById("modal-container");
+
+function showModal(id) {
+  const modal = `
+<input type="checkbox" id="${id}" class="modal-toggle"/>
+<div class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg">Congratulations random Internet user!</h3>
+    <p class="py-4">You've been selected for a chance to get one year of subscription to use Wikipedia for free!</p>
+    <div class="modal-action">
+      <label for="${id}" class="btn">Yay!</label>
+    </div>
+  </div>
+</div>
+`;
+
+  modalContainer.innerHTML = modal;
 }
 
 const container = document.getElementById("container");
@@ -59,7 +81,7 @@ function displayData(datas) {
       <p>${tool.published_in}</p>
     </div>
     </div>
-    <button class="bg-red-100 w-10 h-10 rounded-full object-contain text-red-600 hover:scale-95"><i class="fa-solid fa-arrow-right"></i></button>
+    <label onclick="showModal('${tool.id}')" for="${tool.id}" class="bg-red-100 w-10 h-10 rounded-full object-contain text-red-600 hover:scale-95 grid place-items-center"><i class="fa-solid fa-arrow-right"></i></label>
   </div>
   </div>
      `;
@@ -104,7 +126,7 @@ function sortData() {
 
   if (isSeeMore) {
     btnSeeMore.innerHTML = "SEE LESS";
-    displayData(sortData);
+    displayData(sortedData);
   } else {
     btnSeeMore.innerHTML = "SEE MORE";
     slicedData = sortedData.length > 6 ? sortedData.slice(0, 6) : sortedData;
