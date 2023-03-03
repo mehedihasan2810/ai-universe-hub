@@ -7,7 +7,7 @@ async function fetchData() {
     const response = await fetch(URL);
     const datas = await response.json();
     showLoader(false);
-    console.log(datas.data.tools[0]);
+    console.log(datas.data.tools);
 
     if (!datas.status || !datas.data.tools.length) {
       showErrorMessage();
@@ -28,18 +28,94 @@ console.log(script);
 
 const modalContainer = document.getElementById("modal-container");
 
-function showModal(id) {
+async function showModal(id) {
+  const response = await fetch(
+    `https://openapi.programming-hero.com/api/ai/tool/${id}`
+  );
+  const singleData = await response.json();
+
+  console.log(singleData);
+
   const modal = `
-<input type="checkbox" id="${id}" class="modal-toggle"/>
-<div class="modal">
-  <div class="modal-box">
-    <h3 class="font-bold text-lg">Congratulations random Internet user!</h3>
-    <p class="py-4">You've been selected for a chance to get one year of subscription to use Wikipedia for free!</p>
-    <div class="modal-action">
-      <label for="${id}" class="btn">Yay!</label>
+  <input type="checkbox" id="${id}" class="modal-toggle" />
+  <div class="modal">
+    <div class="modal-box relative max-w-[600px] lg:max-w-[1200px]">
+      <div class="flex gap-4 flex-col lg:flex-row">
+        <div class="flex-1 bg-red-100 border border-red-600 rounded-lg p-8">
+          <h2 class="text-2xl font-bold mb-6">
+            helloooooooooooo
+          </h2>
+
+          <div class="flex justify-between mb-6">
+            <div
+              class="w-min bg-white rounded-md p-6 text-xl font-bold text-green-600"
+            >
+              $10/ month Basic
+            </div>
+            <div
+              class="w-min bg-white rounded-md p-6 text-xl font-bold text-pink-600"
+            >
+              $10/ month Basic
+            </div>
+            <div
+              class="w-min bg-white rounded-md p-6 text-xl font-bold text-blue-600"
+            >
+              $10/ month Basic
+            </div>
+          </div>
+
+          <div class="flex justify-between">
+            <div>
+              <h2 class="text-2xl font-bold mb-3">Features</h2>
+              <ul class="list-disc list-inside">
+                <li>fooooooooooo</li>
+                <li>Customizable responses</li>
+                <li>Customizable responses</li>
+              </ul>
+            </div>
+            <div>
+              <h2 class="text-2xl font-bold mb-3">Integrations</h2>
+              <ul class="list-disc list-inside">
+                <li>Customizable responses</li>
+                <li>Customizable responses</li>
+                <li>Customizable responses</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex-1 p-6 shadow rounded-md">
+          <div class="relative">
+            <img
+              class="rounded-md mb-4"
+              src=""
+              alt=""
+            />
+            <div
+              class="absolute top-2 right-2 bg-red-400 p-2 text-white rounded-md"
+            >
+              94% accuracy
+            </div>
+          </div>
+
+          <h2 class="text-2xl font-bold mb-2">
+            Hi, how are you doing today?
+          </h2>
+          <p>
+            I'm doing well, thank you for asking. How can I assist you today?
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-action">
+        <label
+          for="${id}"
+          class="grid place-items-center text-xl text-red-600 bg-red-100 w-12 h-12 rounded-full absolute top-0 right-0"
+          ><i class="fa-solid fa-xmark"></i
+        ></label>
+      </div>
     </div>
   </div>
-</div>
 `;
 
   modalContainer.innerHTML = modal;
@@ -81,11 +157,12 @@ function displayData(datas) {
       <p>${tool.published_in}</p>
     </div>
     </div>
-    <label onclick="showModal('${tool.id}')" for="${tool.id}" class="bg-red-100 w-10 h-10 rounded-full object-contain text-red-600 hover:scale-95 grid place-items-center"><i class="fa-solid fa-arrow-right"></i></label>
+    <label id="${tool.name}" for="${tool.id}" class="bg-red-100 w-10 h-10 rounded-full object-contain text-red-600 hover:scale-95 grid place-items-center" onclick="showModal('${tool.id}')" ><i class="fa-solid fa-arrow-right"></i></label>
   </div>
   </div>
      `;
     container.append(card);
+    // document.getElementById(tool.name).onclick = function(){showModal(tool)};
   });
 }
 
