@@ -1,17 +1,22 @@
 async function fetchData(isSeeMore = false) {
   const URL = `https://openapi.programming-hero.com/api/ai/tools`;
-  const response = await fetch(URL);
-  const datas = await response.json();
-  console.log(datas.data.tools);
-  let finalData;
-  if (isSeeMore) {
-    finalData = datas.data.tools;
-  } else {
-    let tools = datas.data.tools;
-    finalData = tools.length > 6 ? tools.slice(0, 6) : tools;
-    console.log(finalData);
+  try {
+    const response = await fetch(URL);
+    const datas = await response.json();
+
+    console.log(datas.data.tools);
+    let finalData;
+    if (isSeeMore) {
+      finalData = datas.data.tools;
+    } else {
+      let tools = datas.data.tools;
+      finalData = tools.length > 6 ? tools.slice(0, 6) : tools;
+      console.log(finalData);
+    }
+    displayData(finalData);
+  } catch (error) {
+    console.log(error);
   }
-  displayData(finalData);
 }
 
 function displayData(datas) {
