@@ -1,13 +1,25 @@
-let finalData = null;
+let finalData = [];
+let finalSingleData = [];
 let isSeeMore = false;
+
+// fetching data
 async function fetchData() {
   const URL = `https://openapi.programming-hero.com/api/ai/tools`;
   try {
     showLoader(true);
     const response = await fetch(URL);
     const datas = await response.json();
+    const singleMapedData = datas.data.tools.map((tool) => {
+      return fetch(
+        `https://openapi.programming-hero.com/api/ai/tool/${tool.id}`
+      );
+    });
+    const responseSingleData = await Promise.all(singleMapedData);
+    const singleData = await Promise.all(
+      responseSingleData.map((r) => r.json())
+    );
+    finalSingleData = singleData.slice();
     showLoader(false);
-    console.log(datas.data.tools);
 
     if (!datas.status || !datas.data.tools.length) {
       showErrorMessage();
@@ -24,17 +36,26 @@ async function fetchData() {
 }
 
 const script = document.querySelector("script[src]");
-console.log(script);
-
 const modalContainer = document.getElementById("modal-container");
 
+// showing modal
 async function showModal(id) {
-  const response = await fetch(
-    `https://openapi.programming-hero.com/api/ai/tool/${id}`
-  );
-  const singleData = await response.json();
-
-  console.log(singleData);
+  const data = finalSingleData.find((item) => item.data.id === id).data;
+  const pricing = data.pricing;
+  const integrations = data.integrations
+    ? data.integrations.map((integration) => `<li>${integration}</li>`).join("")
+    : "No Data Found!";
+  const accuracy = data.accuracy.score;
+  const showAccuracy = accuracy
+    ? `<div
+  class="absolute top-2 right-2 bg-red-400 p-2 text-white rounded-md"
+>
+  ${accuracy * 100}% accuracy
+</div>`
+    : "";
+  const examples = data.input_output_examples;
+  const input = examples ? examples[0].input : "Can you give any example?";
+  const output = examples ? examples[0].output : "No! Not Yet! Take a break!!!";
 
   const modal = `
   <input type="checkbox" id="${id}" class="modal-toggle" />
@@ -43,42 +64,52 @@ async function showModal(id) {
       <div class="flex gap-4 flex-col lg:flex-row">
         <div class="flex-1 bg-red-100 border border-red-600 rounded-lg p-8">
           <h2 class="text-2xl font-bold mb-6">
-            helloooooooooooo
+            ${data.description}
           </h2>
 
-          <div class="flex justify-between mb-6">
+          <div class="flex flex-col sm:flex-row gap-2 sm:justify-between mb-6">
             <div
-              class="w-min bg-white rounded-md p-6 text-xl font-bold text-green-600"
+              class="lg:w-min bg-white rounded-md p-6 text-xl font-bold text-green-600"
             >
-              $10/ month Basic
+              ${
+                pricing
+                  ? pricing[0].price + " " + pricing[0].plan
+                  : "Free of " + "Cost/ " + "Basic"
+              }
             </div>
             <div
-              class="w-min bg-white rounded-md p-6 text-xl font-bold text-pink-600"
+              class="lg:w-min bg-white rounded-md p-6 text-xl font-bold text-pink-600"
             >
-              $10/ month Basic
+            ${
+              pricing
+                ? pricing[1].price + " " + pricing[1].plan
+                : "Free of " + "Cost/ " + "Pro"
+            }
             </div>
             <div
-              class="w-min bg-white rounded-md p-6 text-xl font-bold text-blue-600"
+              class="lg:w-min bg-white rounded-md p-6 text-xl font-bold text-blue-600"
             >
-              $10/ month Basic
+            ${
+              pricing
+                ? pricing[2].price + " " + pricing[2].plan
+                : "Free of " + "Cost/ " + "Enterprise"
+            }
             </div>
           </div>
 
-          <div class="flex justify-between">
+          <div class="flex flex-col gap-2 sm:flex-row sm:justify-between">
             <div>
               <h2 class="text-2xl font-bold mb-3">Features</h2>
               <ul class="list-disc list-inside">
-                <li>fooooooooooo</li>
-                <li>Customizable responses</li>
-                <li>Customizable responses</li>
+                <li>${data.features[1].feature_name}</li>
+                <li>${data.features[2].feature_name}</li>
+                <li>${data.features[3].feature_name}</li>
               </ul>
             </div>
             <div>
               <h2 class="text-2xl font-bold mb-3">Integrations</h2>
               <ul class="list-disc list-inside">
-                <li>Customizable responses</li>
-                <li>Customizable responses</li>
-                <li>Customizable responses</li>
+                ${integrations}
               </ul>
             </div>
           </div>
@@ -88,21 +119,18 @@ async function showModal(id) {
           <div class="relative">
             <img
               class="rounded-md mb-4"
-              src=""
+              src="${data.image_link[0]}"
               alt=""
             />
-            <div
-              class="absolute top-2 right-2 bg-red-400 p-2 text-white rounded-md"
-            >
-              94% accuracy
-            </div>
+            ${showAccuracy}
+            
           </div>
 
           <h2 class="text-2xl font-bold mb-2">
-            Hi, how are you doing today?
+            ${input}
           </h2>
           <p>
-            I'm doing well, thank you for asking. How can I assist you today?
+            ${output}
           </p>
         </div>
       </div>
@@ -122,6 +150,8 @@ async function showModal(id) {
 }
 
 const container = document.getElementById("container");
+
+// displaying data
 function displayData(datas) {
   container.innerHTML = "";
 
@@ -162,10 +192,10 @@ function displayData(datas) {
   </div>
      `;
     container.append(card);
-    // document.getElementById(tool.name).onclick = function(){showModal(tool)};
   });
 }
 
+// show more and show less functionality
 function showMore() {
   isSeeMore = !isSeeMore;
   if (isSeeMore) {
@@ -182,6 +212,7 @@ const btnSortByDate = document.getElementById("btn-sort-by-date");
 const btnSeeMore = document.getElementById("btn-see-more");
 btnSeeMore.addEventListener("click", showMore);
 
+// show error message
 function showErrorMessage() {
   btnSeeMore.classList.add("hidden");
   const main = document.querySelector("main");
@@ -192,6 +223,7 @@ function showErrorMessage() {
 
 btnSortByDate.addEventListener("click", sortData);
 
+// data sorting functionality
 function sortData() {
   const sortedData = finalData.sort((dataA, dataB) => {
     const publishedA = new Date(dataA.published_in).getTime();
@@ -214,6 +246,7 @@ function sortData() {
 const spinnerContainer = document.getElementById("spinner-container");
 const spinner = document.getElementById("spinner");
 
+// show loader
 function showLoader(isLoading) {
   if (isLoading) {
     spinnerContainer.classList.remove("hidden");
